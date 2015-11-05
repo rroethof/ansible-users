@@ -1,0 +1,43 @@
+---
+# tasks file for users
+
+- name: Users | Create groups
+  group: name="{{item}}"
+  with_items: groups_to_create
+  tags: ['users', 'groups', 'common']
+
+- name: Users | Create group per user
+  group: name="{{item.username}}" gid="{{item.uid}}"
+  with_items: users
+  when: users_create_per_user_group
+  tags: ['users', 'groups', 'common']
+
+- name: Users | Create Users
+  user: name="{{item.username}}"
+        group="{{item.username if users_create_per_user_group else users_group}}"
+        groups="{{item.groups | join(',')}}"
+        shell={{item.shell if item.shell is defined else users_default_shell}}
+        password="{{item.password if item.password is defined else '!'}}"
+        comment="{{item.name}}"
+        uid="{{item.uid}}"
+        createhome="{{'yes' if users_create_homedirs else 'no'}}"
+  with_items: users
+  tags: ['users','common']
+
+- name: Users | SSH keys
+  authorized_key: user="{{item.0.username}}" key="{{item.1}}"
+  with_subelements:
+    - users
+    - ssh_key
+  tags: ['users','common']
+
+- name: Users | Delete users
+  user: name="{{item.username}}" state=absent
+  with_items: users_deleted
+  tags: ['users','common']
+
+- name: Users | Deleted group per user
+  group: name="{{item.username}}" state=absent
+  with_items: users_deleted
+  when: users_create_per_user_group
+  tags: ['users','common']
