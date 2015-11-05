@@ -3,7 +3,8 @@
 # It should add a user when given valid metadata
 
 - hosts: test
-  sudo: yes
+  user: root
+  become: true
 
 # Test fixture data
   vars:

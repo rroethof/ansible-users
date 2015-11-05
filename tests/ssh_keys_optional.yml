@@ -3,7 +3,8 @@
 # SSH keys should not be required
 
 - hosts: test_runners
-  sudo: yes
+  user: root
+  become: true
 
 # Test fixture data
   vars:
